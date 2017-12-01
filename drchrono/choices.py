@@ -16,9 +16,9 @@ race_choices = (
 
 ethnicity_choices = (
     ("blank", ""),
-    ("Hispanic or Latino", "Hispanic or Latino"),
-    ("Not Hispanic or Latino", "Not Hispanic or Latino"),
-    ("Declined to specify", "Declined to specify")
+    ("hispanic", "Hispanic or Latino"),
+    ("not_hispanic", "Not Hispanic or Latino"),
+    ("declined", "Declined to specify")
 )
 preferred_language_choices = (
     ("eng", "English"),

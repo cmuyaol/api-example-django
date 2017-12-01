@@ -6,9 +6,7 @@ from constants import (
     statistic_averaged_waiting_time
 )
 
-from django.core.urlresolvers import reverse
 from django.http import HttpResponse
-from django.http import HttpResponseRedirect
 from django.shortcuts import (
     render,
     redirect,
@@ -28,15 +26,7 @@ from forms import (
 )
 from models import *
 import json
-from settings import URL_BASE_DRCHRONO
-import requests
-import time
-import pytz
-import datetime
 
-from django.utils.dateparse import parse_datetime
-from smtplib import SMTP
-from email.mime.text import MIMEText
 
 logger_format = '%(asctime)-15s %(message)s'
 logging.basicConfig(format=logger_format)
@@ -64,9 +54,7 @@ def login_redirect(request):
         current_doctor = Doctor.get_doctor_info(extra_data.get('access_token'))
     except ObjectDoesNotExist:
         return HttpResponse('Authentication error')
-    except Exception:
-        print extra_data.get('access_token')
-        print Doctor.get_doctor_info(extra_data.get('access_token'))
+    except Exception as e:
         return HttpResponse('Failed to get user information through API')
 
     user_info = {
@@ -299,21 +287,32 @@ def patient_self_checkin(request):
                             >= datetime.datetime.now().date()]
             for a in appointments:
                 doctors[a.doctor_id] = a.get_doctor_name()
-            # Todo append the appointment status for each appointment
 
             doctor_list = [doctors[a.doctor_id] for a in appointments]
             reformatted_app_time = []
+            status_list = []
+            can_checkin = []
             for a in appointments:
                 # e.g. 14:50:00
                 splited_time = str(a.scheduled_time).split()[-1].split('+')[0]
                 print "splited", splited_time
                 reformatted_app_time.append(splited_time)
+                # Todo consider to change the schema for appointment
+                access_token = Doctor.objects.get(user_id=a.doctor_id).access_token
+                status = Doctor.get_appointment_status(access_token, a.appointment_id)
+                status_list.append(status)
+                logger.info('status received as %s' % status)
+                not_check_in_status = ['Checked In', 'Arrived', 'In Room', 'Cancelled', 'In Session', 'No Show', 'Not Confirmed', 'Rescheduled', 'Complete']
+                if status in not_check_in_status:
+                    can_checkin.append(False)
+                else:
+                    can_checkin.append(True)
 
-            app_doctor_list = zip(appointments, doctor_list, reformatted_app_time)
+            app_doctor_list = zip(appointments, doctor_list, reformatted_app_time, status_list, can_checkin)
             context = {
                 'app_doctor': app_doctor_list,
                 'patient_first_name': first_name,
-                'patient_last_name': last_name
+                'patient_last_name': last_name,
             }
             print app_doctor_list
             # print Doctor.get_patient_demograph('MY4CCJGbVW3Rq88fdQMzWmG23zIYah', 'Jenny', 'Harris')
@@ -388,8 +387,8 @@ def demographic_form_filler(request, app_id):
             messages.error(request, "Unknown error in getting appointment!")
 
         if a.arrived_time:
-            messages.error(request, "You have alreday checked in for this appointment, redirecting to login page")
-            return render(request, "patient_check_in.html", {})
+            messages.error(request, "You have alreday checked in for this appointment, redirected to login page")
+            return render(request, "patient_check_in.html", {'form': PatientForm})
 
         context = {'form': DemographicForm,
                    'app_id': app_id,
@@ -402,8 +401,19 @@ def gg(request):
     """
     Test page
     """
+    import datetime
+    from django.core.urlresolvers import reverse
+    from django.http import HttpResponseRedirect
+    import requests
+    import time
+    from django.utils.dateparse import parse_datetime
+    from smtplib import SMTP
+    from email.mime.text import MIMEText
     logger.info('Doing test')
-    # access_token = Doctor.objects.get(user_id=199480).access_token
+    access_token = Doctor.objects.get(user_id=199480).access_token
+    m = Doctor.api_request_drchrono(access_token, "api/appointments/%s" % 71440822, 'GET')
+    print 'status is', dict(m)['status']
+    endpoint = '/api/appointments'
     # #Doctor.check_in_patient(access_token, {'id': 69403880})
     # Doctor.update_appointment_status(access_token, {'id': u'69403916', 'status': 'Arrived'})
     # Doctor.update_patient_demograph(access_token, 69742112, {'doctor': 199480,

@@ -39,6 +39,13 @@
 	{{ error }}
 	</p>
 	{% endfor %}
+   {% if messages %}
+       <ul class="messages">
+        {% for message in messages %}
+        <li class="{{ message.tags }}" style="color: red">{{ message }}</li>
+        {% endfor %}
+        </ul>
+{% endif %}
 	<div>
 	<form method="POST" action="{% url 'patient_checkin' %}">
 		<table>

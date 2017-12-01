@@ -62,18 +62,21 @@
                     <th><i class="icon_clock"></i> Duration </th>
                     <th><i class="icon_cogs"></i> Action</th>
                   </tr>
-                {% for appointment, doctor, reformatted_time in app_doctor %}
+                {% for appointment, doctor, reformatted_time, status, able_to_check_in in app_doctor %}
                   <tr>
                     <td>{{ doctor }}</td>
                     <td>{{ appointment.scheduled_time }}</td>
-                    <td>{{ appointment.status }}</td>
+                    <td>{{ status }}</td>
                     <td>Room1</td>
                     <td>{{ appointment.duration }} min</td>
                     <td>
                       <div class="btn-group">
-                        <a class="btn btn-success" onclick=assertAppointment('{{ appointment.appointment_id }}','{{ reformatted_time }}')>
-                            <i class="icon_check_alt2"></i></a>
-                          <p id="check_in_status"></p>
+                          {% if able_to_check_in %}
+                              <a class="btn btn-success" onclick=assertAppointment('{{ appointment.appointment_id }}','{{ reformatted_time }}')>
+                                  <i class="icon_check_alt2"></i></a>
+                              <p id="check_in_status"></p>
+                          {% endif %}
+
                       </div>
                     </td>
                   </tr>

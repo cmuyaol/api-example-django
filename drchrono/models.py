@@ -23,7 +23,7 @@ logger.setLevel(logging.INFO)
 class Doctor(models.Model):
     """
     Store the user information
-    Deal with drchrono API requests and common operations for doctors
+    Handle drchrono API requests and common operations for doctors
     """
     user_id = models.IntegerField()
     user = models.CharField(max_length=100)
@@ -33,8 +33,9 @@ class Doctor(models.Model):
     @staticmethod
     def api_request_drchrono(access_token, endpoint, request_type, args={}, json_format=True):
         """
-        Given the access token, API endpoint, type of the request, arguments,
-        perform the API request. This method raise for status
+        Given the access token, API endpoint, type of the request, arguments,perform the API request.
+        If json_format is set to False, return the httpResponse directly.
+        This method raise for status
         :param access_token: Access_token of the user
         :param endpoint: API endpoint
         :param request_type: Type of the api request: e.g. GET, PUT, POST
@@ -71,7 +72,7 @@ class Doctor(models.Model):
     def check_in_patient(access_token, appointment):
         """
         (Doctor) check in a patient for the given appointment, update the waiting time for the patient
-        :param access_token:
+        :param access_token: access_token of the corresponding doctor
         :param appointment: dictionary that include the appointment id
         :return:
         """
@@ -100,6 +101,12 @@ class Doctor(models.Model):
 
     @staticmethod
     def finish_appointment(access_token, appointment):
+        """
+        Update the appointment status to Complete
+        :param access_token: access_token of the corresponding doctor
+        :param appointment: dictionary that include the appointment id
+        :return:
+        """
         patch = {
             "status": "Complete",
             'id': appointment['id']
@@ -128,6 +135,7 @@ class Doctor(models.Model):
     @staticmethod
     def request_new_token(refresh_token):
         """
+        Request the new access token
         :param refresh_token:
         :return: (new refresh_token, new access_token)
         """
@@ -144,13 +152,17 @@ class Doctor(models.Model):
 
     @staticmethod
     def get_doctor_info(access_token):
+        """
+        Invoke API request to retrieve the doctor's user information
+        :return:HttpResponse of JSON format
+        """
         endpoint = 'api/users/current'
         return Doctor.api_request_drchrono(access_token, endpoint, 'GET')
 
     @staticmethod
     def get_patient(access_token, patient_id):
         """
-        Invoke API request to retreive information for a specific patient
+        Invoke API request to retrieve information for a specific patient
         :param access_token: access_token of the corresponding doctor
         :param patient_id: id of the patient
         :return: Information for a specific patient
@@ -198,6 +210,8 @@ class Doctor(models.Model):
     @staticmethod
     def get_patient_demograph(access_token, first_name, last_name):
         """
+        Invoke API request to retrieve the patient demograph of a given doctor
+        given the First name and Last name
         :param access_token: Access_token of the user
         :param first_name: First name of the patient
         :param last_name: Last name of the patient
@@ -213,10 +227,10 @@ class Doctor(models.Model):
         Update the appointments information in the database,
         If the patient status is "Arrived", arrived_time filed will be append
         If the patient status is "Checked-in" or "In Room", waiting_time filed will be append
-
-        :param access_token:
+        Overwrite the given appointments
+        :param access_token:Access_token of the user
         :param appointments:List of appointments
-        :return:the updated
+        :return:appointments():The updated appointments
         """
         require_waiting_time_status = ["Checked In", "In Room", "Complete", "In Session"]
         for a in appointments:
@@ -226,11 +240,6 @@ class Doctor(models.Model):
             appointment_saved = Appointment.objects.filter(appointment_id=appointment_id)
             if not appointment_saved:
                 patient_info = Doctor.get_patient(access_token, patient_id)
-                # print "appointment info: {0},{1},{2},{3},{4},{5},{6}".format(appointment_id,a.get('duration'),
-                #                                                          scheduled_time, patient_id,
-                #                                                          patient_info['social_security_number'],
-                #                                                              patient_info['first_name'],
-                #                                                          patient_info['last_name'])
                 print "Get new appointment!"
                 new_appointment = Appointment(appointment_id=str(appointment_id),
                                               duration=a.get('duration'),
@@ -261,7 +270,8 @@ class Doctor(models.Model):
 
     def update_average_waiting_time(self):
         """
-        :return:The average waiting time of the patients given the doctor
+        Update the average waiting time for the doctor given the historically appointments done in Kiosk
+        :return:(Float)The average waiting time of the patients given the doctor(Not formatted)
         """
         appointments = Appointment.objects.filter(doctor_id=self.user_id)
         sum_time = 0
@@ -281,7 +291,7 @@ class Doctor(models.Model):
         """
         :param access_token: Access_token of the user
         :param appointment: Updated data of the appointment
-        :return: Boolean: True If the update operation success, False otherwise
+        :return: (Boolean) True If the update operation success, False otherwise
         """
         endpoint = "api/appointments/%s" % appointment['id']
         response = Doctor.api_request_drchrono(access_token, endpoint, "PATCH", appointment, json_format=False)
@@ -293,12 +303,24 @@ class Doctor(models.Model):
         response = Doctor.api_request_drchrono(access_token, endpoint, "PATCH", demograph, json_format=False)
         return response.status_code == 204
 
+    @staticmethod
+    def get_appointment_status(access_token, appointment_id):
+        """
+        Get the appointment status for the given appointment
+        :param access_token: Access_token of the user
+        :param appointment_id: Id of the given appointment
+        :return: (String)The status of the given appointment
+        """
+        endpoint = "api/appointments/%s" % appointment_id
+        return Doctor.api_request_drchrono(access_token, endpoint, 'GET')['status']
+
 
 class Appointment(models.Model):
     """
     Appointment should be created by Doctor
     Store the essential information about the appointment for retrieval
     waiting_time(Integer field in seconds) should only be changed when a doctor check in the patient of the appointment
+    arrived_time filed should be set only once when the patient check in for that appointment
     """
 
     appointment_id = models.CharField(max_length=100, unique=True)
@@ -333,17 +355,18 @@ class Appointment(models.Model):
         self.waiting_time = current_time
         return self
 
+
     @staticmethod
-    def get_appointment_by_SSN(SSN):
+    def get_appointment_by_ssn(SSN):
         """
         :param SSN: SSN of the patient
         :return: the appointment object
         """
-        appointment = Appointment.objects.filter(SSN)
+        appointment = Appointment.objects.filter(patient_SSN=SSN)
         return appointment
 
     @staticmethod
-    def get_appointments_by_Name(first_name, last_name):
+    def get_appointments_by_name(first_name, last_name):
         """
         :param first_name: First name of the patient
         :param last_name: Last name of the patient

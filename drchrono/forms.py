@@ -1,11 +1,9 @@
-from django import forms
 import re
+from django import forms
+from choices import *
 
 
 # forms go here
-
-from django import forms
-from choices import *
 
 
 class PatientForm(forms.Form):
