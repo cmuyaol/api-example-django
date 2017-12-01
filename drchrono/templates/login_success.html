@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <title>Login Redirect</title>
+</head>
+<body>
+<p>Login via Drchrono success</p>
+<div id = "redirect"></div>
+<p>wait <span id = "timer"> 5 </span>s to redirect...</p>
+<a href="{% url 'kiosk_dashboard' %}">Go to the kiosk dashboard</a><br>
+
+
+<script>
+    count_redirect();
+    function count_redirect(){
+        var tem = document.getElementById("timer");
+
+        if (Number(tem.innerText) == '1') {
+            console.log(111)
+            window.location.href= "kiosk";
+        } else {
+            tem.innerText = Number(tem.innerText) - 1;
+        }
+        setTimeout("count_redirect()", 1000);
+    }
+
+
+    function addPost() {
+          $.post("/create_post/", {"new_post_title": new_post_title.val(), "new_post_content": new_post_content.val()})
+            .done(function(data) {
+              updateMainPage();
+              new_post_content.val("");
+              new_post_title.val("").focus();
+            })
+    }
+
+
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie != '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = jQuery.trim(cookies[i]);
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+      }
+      var csrftoken = getCookie('csrftoken');
+      $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+        }
+  });
+</script>
+</body>
+</html>

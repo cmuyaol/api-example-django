@@ -109,3 +109,20 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
 STATIC_URL = '/static/'
+
+# social auth configuration
+SOCIAL_AUTH_DRCHRONO_KEY = 'H2w0SEMMTqQGK2boKmoJfiZ4RpJIoF5zyc5UAsei'
+SOCIAL_AUTH_DRCHRONO_SECRET = '2rFI8y0HZ9ZWJgytEpjS3pO9lEsoWv8wnXJmPMKyIoAfSl3R73UkPGZ3Jc6Uj4U2IrTei0PCeBVds153HwWzxsl5G7OhahdL32Jtv1Ngq5arobR2cn0d4shN1fQZnWYI'
+SOCIAL_AUTH_DRCHRONO_SCOPE = []
+LOGIN_REDIRECT_URL = 'http://localhost:8000/login_redirect'
+
+# base url for Drchrono API
+URL_BASE_DRCHRONO = 'https://drchrono.com/'
+
+# Email configuration
+#'smtp.andrew.cmu.edu'  #for a student 'smtp.andrew.cmu.edu'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'emailtestyao@gmail.com'
+EMAIL_HOST_PASSWORD = 'tEbILBEm2vF9J58nEAG6xfGuXWF90z'
+EMAIL_USE_TLS = True

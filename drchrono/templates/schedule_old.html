@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Kiosk Schedule</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+     <!-- Bootstrap core CSS -->
+    <link href="/static/css/common/bootstrap.min.css" rel="stylesheet">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</head>
+<body>
+{% for appointment in appointments %}
+    <p>{{ appointment.patient_first_name }} {{ appointment.patient_last_name }}     {{ appointment.status }}
+    {% if appointment.status == 'Arrived' %}
+        <button onclick="check_in_patient({{ appointment.id }})">Check in patient</button>
+        <p id="check_in_status"></p>
+    {% endif %}
+    {% if appointment.waiting_time %}
+        waiting for {{ appointment.waiting_time }}
+    {% endif %}
+    {% if appointment.arrived_time %}
+        Patient arrvied at {{ appointment.arrived_time }}
+    {% endif %}
+    {{ appointment.scheduled_time }}
+    </p>
+{% endfor %}
+<script>
+    function getCSRFToken() {
+        var cookies = document.cookie.split(";");
+        for (var i = 0; i < cookies.length; i++) {
+            if (cookies[i].startsWith("csrftoken=")) {
+                return cookies[i].substring("csrftoken=".length, cookies[i].length);
+            }
+        }
+        return "unknown";
+    }
+    function deleteItem(id) {
+        $.ajax({
+            url: "/SocialNetwork/delete/%d" % id,
+            type: "POST",
+            data: "csrfmiddlewaretoken="+getCSRFToken(),
+            dataType : "json",
+            success: updateList
+        });
+    }
+    function check_in_patient(id) {
+{#        var a = confirm("update");#}
+{#        if (a) {#}
+        $.ajax({
+            url: "/doctor_checkin_patient/"+id,
+            data: "csrfmiddlewaretoken="+getCSRFToken(),
+            type: "POST",
+            dataType : "json",
+            success: function() {
+                document.getElementById("check_in_status").innerHTML = 'Check-in success!';
+           }
+        });
+    }
+
+{#    function check_in_patient(id) {#}
+{#        var a = confirm("update");#}
+{#        if (a) {#}
+{#            $.post("/create_post/", {"new_post_title": new_post_title.val(), "new_post_content": new_post_content.val()})#}
+{#            .done(function(data) {#}
+{#              updateMainPage();#}
+{#              new_post_content.val("");#}
+{#              new_post_title.val("").focus();#}
+{#            })#}
+{#            document.getElementById("check_in_status").innerHTML = greeting;#}
+{#        }#}
+{#    }#}
+</script>
+</body>
+</html>

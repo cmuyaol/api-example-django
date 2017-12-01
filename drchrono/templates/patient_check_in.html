@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Creative - Bootstrap 3 Responsive Admin Template">
+  <meta name="author" content="GeeksLabs">
+  <meta name="keyword" content="Creative, Dashboard, Admin, Template, Theme, Bootstrap, Responsive, Retina, Minimal">
+  <link rel="shortcut icon" href="img/favicon.png">
+
+  <title>Patient | check in</title>
+
+  <!-- Bootstrap CSS -->
+  <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+  <!-- bootstrap theme -->
+  <link href="/static/css/bootstrap-theme.css" rel="stylesheet">
+  <!--external css-->
+  <!-- font icon -->
+  <link href="/static/css/elegant-icons-style.css" rel="stylesheet" />
+  <link href="/static/css/font-awesome.css" rel="stylesheet" />
+  <!-- Custom styles -->
+  <link href="/static/css/style.css" rel="stylesheet">
+  <link href="/static/css/style-responsive.css" rel="stylesheet" />
+
+  <!-- HTML5 shim and Respond.js IE8 support of HTML5 -->
+  <!--[if lt IE 9]>
+    <script src="js/html5shiv.js"></script>
+    <script src="js/respond.min.js"></script>
+    <![endif]-->
+
+
+</head>
+<body class="login-img-patient-body">
+
+  <div class="container">
+<h2>Patient check in</h2>
+	{% for error in form.non_field_errors %}
+	<p style="color: red">
+	{{ error }}
+	</p>
+	{% endfor %}
+	<div>
+	<form method="POST" action="{% url 'patient_checkin' %}">
+		<table>
+            {{ form.first_name.label_tag }}
+            {{ form.first_name }}
+            {{ form.last_name.label_tag }}
+            {{ form.last_name }}
+{#		{% for field in form.visible_fields %}#}
+{#			<tr>#}
+{#  				<td>{{field.label_tag}}</td>#}
+{#  				<td>{{field}}</td>#}
+{#  				<td style="color: red">{{field.errors}}</td>#}
+{#			</tr>#}
+{#		{% endfor %}#}
+		</table>
+		{% for field in form.hidden_fields %}
+		{{field}}
+		{% endfor %}
+		{% csrf_token %}
+		<input class="btn btn-info btn-lg btn-block" type="submit" value="Find the appointment" />
+	</form>
+	</div>
+	 <p id = "footer">&copy; Drchrono Kiosk</p>
+  </div>
+</body>
+</html>

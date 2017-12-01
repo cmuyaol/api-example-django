@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <title>Title</title>
+</head>
+<body>
+<button onclick="myFunction()">Try it</button>
+
+<p id="demo"></p>
+<i class="fa fa-stethoscope"></i>
+{% if messages %}
+  <ul class="messages">
+    {% for message in messages %}
+      <li class="{{ message.tags }}">{{ message }}</li>
+    {% endfor %}
+  </ul>
+{% endif %}
+<script>
+function myFunction() {
+    var a = confirm("update");
+    if (a) {
+        var hour = new Date().getHours();
+        var greeting;
+        if (hour < 18) {
+            greeting = "Good day";
+        } else {
+            greeting = "Good evening";
+        }
+        document.getElementById("demo").innerHTML = greeting;
+    }
+
+}
+</script>
+</body>
+</html>
